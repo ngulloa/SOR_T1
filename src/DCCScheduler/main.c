@@ -2,6 +2,8 @@
 #include <stdlib.h> // malloc, calloc, free, etc
 #include "../file_manager/manager.h"
 
+#include "estructuras.h"
+
 int main(int argc, char const *argv[])
 {
 	/*Lectura del input*/
