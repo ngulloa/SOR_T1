@@ -11,9 +11,9 @@ typedef struct proceso {
     char nombre[256];
     pid_t pid;
     State estado;
-    time_t tiempo_rafagas;
-    int rafagas_ejecutando;
-    time_t tiempo_espera_io;
+    int tiempo_rafaga;
+    int n_rafagas;
+    int tiempo_espera_io;
     int prioridad;
   } Proceso;
 
