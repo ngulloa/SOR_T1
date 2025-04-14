@@ -13,22 +13,22 @@ void insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo){
     }
     else{
         if(nuevo->t_inicio < almacenamiento->t_inicio){
-            nuevo->siguiente = almacenamiento;
+            nuevo->siguiente_almacenamiento = almacenamiento;
             almacenamiento = nuevo;
             return;
         }
-        Proceso* actual = almacenamiento->siguiente;
+        Proceso* actual = almacenamiento->siguiente_almacenamiento;
         Proceso* previo = almacenamiento;
-        while(actual->siguiente != NULL){
+        while(actual->siguiente_almacenamiento != NULL){
             if(nuevo->t_inicio < actual->t_inicio){
-                nuevo->siguiente = actual;
-                previo->siguiente = nuevo;
+                nuevo->siguiente_almacenamiento = actual;
+                previo->siguiente_almacenamiento = nuevo;
                 return;
             }
             previo = actual;
-            actual = actual->siguiente;
+            actual = actual->siguiente_almacenamiento;
         }
-        actual->siguiente = nuevo;
+        actual->siguiente_almacenamiento = nuevo;
         return;
     }
 }
@@ -37,7 +37,7 @@ void extraer_almacencamiento(Proceso* almacenamiento, int n_ticks){
     Proceso* actual = almacenamiento;
     while(actual != NULL && actual->t_inicio == n_ticks){
         Proceso* proceso_extraido = actual;
-        actual = actual->siguiente;
+        actual = actual->siguiente_almacenamiento;
         // Aquí se debe liberar el proceso extraído
         // TODO: Insertar en la colas
     }
@@ -85,7 +85,7 @@ struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* col
 }
 
 
-void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks){
+void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos){
     int tick_actual = 0;
     int n_procesos_terminados = 0;
     struct proceso** procesos_terminados = calloc(procesos_totales, sizeof(struct process*));

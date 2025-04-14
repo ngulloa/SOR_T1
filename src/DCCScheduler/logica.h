@@ -7,12 +7,16 @@
 
 //void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL);
 
+void insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo);
+
+void extraer_almacencamiento(Proceso* almacenamiento, int n_ticks);
+
 void actualizar_waiting_cola(struct queue* cola);
 
 void actualizar_espera_ready_cola(struct queue* cola);
 
 struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* colaM, struct queue* colaL);
 
-void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks);
+void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos);
 
 void liberar_memoria(struct queue* colaH, struct queue* colaM, struct queue* colaL, struct process** procesos_terminados, int procesos_totales);

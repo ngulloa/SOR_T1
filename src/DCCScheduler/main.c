@@ -2,7 +2,7 @@
 #include <stdlib.h> // malloc, calloc, free, etc
 #include "../file_manager/manager.h"
 
-#include "estructuras.h"
+#include "logica.h"
 
 int main(int argc, char const *argv[])
 {
@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 	char *output_file_name = (char *)argv[2];
 	int quantum = atoi(argv[3]);
 	int n_ticks = atoi(argv[4]);
-	struct nodo* todos_procesos = NULL;
+	struct proceso* todos_procesos = NULL;
 	
 	printf("output_file %s, quantum %d, n_ticks %d\n", output_file_name, quantum, n_ticks);
 	InputFile *input_file = read_file(file_name);
@@ -51,13 +51,20 @@ int main(int argc, char const *argv[])
 		printf("\n");
 
 		// Agregar a la lista de procesos
-		/* Debo incluir en la LL al final pero ordenado con los t_inicio
-		Mover while(nuevo->t_inicio <=??? actual->t_inicio) 
-		Ver condición de lo de ser NULL y que esto esté bien*/
-
-
-		free(nuevo_proceso);
+		insertar_almacenamiento(todos_procesos, nuevo_proceso);
 	}
 
 	input_file_destroy(input_file);
+
+	Queue* colaH = calloc(1, sizeof(Queue));
+	colaH->tipo = HIGH;
+	colaH->quantum_base = quantum*2;
+	colaH->quantum_actual = 0;
+	Queue* colaM= calloc(1, sizeof(Queue));
+	colaM->tipo = MEDIUM;
+	colaM->quantum_base = quantum;
+	colaM->quantum_actual = 0;
+	Queue* colaL = calloc(1, sizeof(Queue));
+	colaL->tipo = LOW;
+	logica_programa(colaH, colaM, colaL,n_procesos, n_ticks, todos_procesos);
 }
