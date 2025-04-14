@@ -49,6 +49,31 @@ struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* col
     return proceso_actual;
 }
 
+void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
+    FILE* archivo = fopen("procesos.txt", "w");
+
+    fprintf(archivo, "Nombre,PID,TurnaroundTime,ResponseTime,WaitingTime,CambiosCola\n");
+
+    Proceso* actual = cabeza;
+    while (actual != NULL) {
+
+        fprintf(archivo, "%s,%d,%d,%d,%d,%d\n",
+            actual->nombre,
+            actual->pid,
+            actual->t_turnaround,
+            actual->t_response,
+            actual->t_waiting_total,
+            actual->cambios_cola
+        );
+
+        actual = actual->siguiente;
+    }
+
+    fclose(archivo);
+
+    printf("Información de procesos guardada en: %s\n", nombre_archivo);
+}
+
 
 void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos){
     int tick_actual = 0;
