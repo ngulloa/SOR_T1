@@ -40,6 +40,6 @@ typedef struct queue {
     Proceso* primero;   // Primer proceso en la cola
     Proceso* ultimo;    // Último proceso en la cola
     QueueType tipo;
-    int quantum_base;
+    int quantum_base;    /* Si es FIFO no será necesario */
     int quantum_actual;
 } Queue;
