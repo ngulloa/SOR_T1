@@ -3,7 +3,7 @@
 #include <stdlib.h> // malloc, calloc, free, etc
 #include "../file_manager/manager.h"
 
-#include "estructuras_local.h"
+#include "estructuras.h"
 
 //void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL);
 
