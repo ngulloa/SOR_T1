@@ -66,5 +66,5 @@ int main(int argc, char const *argv[])
 	colaM->quantum_actual = 0;
 	Queue* colaL = calloc(1, sizeof(Queue));
 	colaL->tipo = LOW;
-	logica_programa(colaH, colaM, colaL,n_procesos, n_ticks, todos_procesos);
+	logica_programa(colaH, colaM, colaL,n_procesos, n_ticks, todos_procesos, output_file_name);
 }

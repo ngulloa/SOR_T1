@@ -51,9 +51,9 @@ struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* col
 
 // GENERAR OUTPUT FILE
 void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
-    FILE* archivo = fopen("procesos.txt", "w");
+    FILE* archivo = fopen(nombre_archivo, "w");
 
-    fprintf(archivo, "Nombre,PID,TurnaroundTime,ResponseTime,WaitingTime,CambiosCola\n");
+    //fprintf(archivo, "Nombre,PID,TurnaroundTime,ResponseTime,WaitingTime,CambiosCola\n");
 
     Proceso* actual = cabeza;
     while (actual != NULL) {
@@ -75,7 +75,7 @@ void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
     printf("Información de procesos guardada en: %s\n", nombre_archivo);
 }
 
-void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos){
+void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos, const char* output){
     int tick_actual = 0;
     int n_procesos_terminados = 0;
     struct proceso** procesos_terminados = calloc(procesos_totales, sizeof(struct process*));
@@ -239,9 +239,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
     }
 
     // MAnejar Output
-    FILE* archivo = fopen("output.txt", "w");
-    // Ver qué hacer aquí
-    fclose(archivo);
+    generar_output_file(procesos_terminados, output);
     liberar_memoria(colaH, colaM, colaL, procesos_terminados, procesos_totales);
 }
 
