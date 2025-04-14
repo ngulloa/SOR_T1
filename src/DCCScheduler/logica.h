@@ -7,9 +7,6 @@
 
 //void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL);
 
-void insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo);
-
-void extraer_almacencamiento(Proceso* almacenamiento, int n_ticks);
 
 void actualizar_waiting_cola(struct queue* cola);
 

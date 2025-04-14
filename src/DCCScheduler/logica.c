@@ -7,42 +7,7 @@
 
 #include "logica.h"
 
-void insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo){
-    if(almacenamiento == NULL){
-        almacenamiento = nuevo;
-    }
-    else{
-        if(nuevo->t_inicio < almacenamiento->t_inicio){
-            nuevo->siguiente_almacenamiento = almacenamiento;
-            almacenamiento = nuevo;
-            return;
-        }
-        Proceso* actual = almacenamiento->siguiente_almacenamiento;
-        Proceso* previo = almacenamiento;
-        while(actual->siguiente_almacenamiento != NULL){
-            if(nuevo->t_inicio < actual->t_inicio){
-                nuevo->siguiente_almacenamiento = actual;
-                previo->siguiente_almacenamiento = nuevo;
-                return;
-            }
-            previo = actual;
-            actual = actual->siguiente_almacenamiento;
-        }
-        actual->siguiente_almacenamiento = nuevo;
-        return;
-    }
-}
 
-void extraer_almacencamiento(Proceso* almacenamiento, int n_ticks){
-    Proceso* actual = almacenamiento;
-    while(actual != NULL && actual->t_inicio == n_ticks){
-        Proceso* proceso_extraido = actual;
-        actual = actual->siguiente_almacenamiento;
-        // Aquí se debe liberar el proceso extraído
-        // TODO: Insertar en la colas
-    }
-    return;
-}
 
 void actualizar_waiting_cola(struct queue* cola){
     struct proceso* proceso_actual = cola->primero;
@@ -74,11 +39,11 @@ void actualizar_espera_ready_cola(struct queue* cola){
 struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* colaM, struct queue* colaL){
     struct process* proceso_actual = NULL;
     // Verificar si hay procesos en la cola de alta prioridad
-    proceso_actual = pop_cabeza(colaH);
+    proceso_actual = extraer_cola(colaH);
     if(proceso_actual == NULL){
-        proceso_actual = pop_cabeza(colaM);
+        proceso_actual = extraer_cola(colaM);
         if(proceso_actual == NULL){
-            proceso_actual = pop_cabeza(colaL);
+            proceso_actual = extraer_cola(colaL);
         }
     }
     return proceso_actual;
@@ -192,21 +157,23 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 }
             }
         }
+        // Veo si puedo ingresar procesos según su t_inicio
+        extraer_almacencamiento(todos_procesos, n_ticks, colaH, colaM, colaL);
         // Ahora verifico los "n" ticks y subo de cola
         if(tick_actual%n_ticks == 0){
             // Subo los de colaM
-            struct proceso* proceso_subido = pop_cabeza(colaM);
+            struct proceso* proceso_subido = extraer_cola(colaM);
             while(proceso_subido != NULL){
                 proceso_subido->cola_asignada = 'H';
                 insertar_cola(colaH, proceso_subido);
-                proceso_subido = pop_cabeza(colaM); // Subo los de colaM
+                proceso_subido = extraer_cola(colaM); // Subo los de colaM
             }
             // Subo los de colaL
-            proceso_subido = pop_cabeza(colaL);
+            proceso_subido = extraer_cola(colaL);
             while(proceso_subido != NULL){
                 proceso_subido->cola_asignada = 'M';
                 insertar_cola(colaM, proceso_subido);
-                proceso_subido = pop_cabeza(colaL); // Subo los de colaL
+                proceso_subido = extraer_cola(colaL); // Subo los de colaL
             }
         }
         // Ahora asigno proceso a CPU en caso de no haber
