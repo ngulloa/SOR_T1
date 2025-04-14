@@ -49,6 +49,7 @@ struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* col
     return proceso_actual;
 }
 
+// GENERAR OUTPUT FILE
 void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
     FILE* archivo = fopen("procesos.txt", "w");
 
@@ -73,7 +74,6 @@ void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
 
     printf("Información de procesos guardada en: %s\n", nombre_archivo);
 }
-
 
 void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos){
     int tick_actual = 0;
