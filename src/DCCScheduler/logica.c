@@ -10,12 +10,14 @@
 void actualizar_waiting_cola(struct queue* cola){
     struct process* proceso_actual = cola->cabeza;
     while(proceso_actual != NULL){
-        if(strcmp(proceso_actual->estado, "WAITING")==0){
+        if(proceso_actual->estado == WAITING){
+        //if(strcmp(proceso_actual->estado, "WAITING")==0){
             // Condición para que terminó de esperar
             proceso_actual->tiempo_esperaIO_actual++;
             if(proceso_actual->tiempo_espera_IO == proceso_actual->tiempo_esperaIO_actual){
                 // Cambiar estado a READY
-                strcpy(proceso_actual->estado, "READY"); // Ver si esto sirve o asignar directamente el valor
+                proceso_actual->estado = READY;
+                //strcpy(proceso_actual->estado, "READY"); // Ver si esto sirve o asignar directamente el valor
                 proceso_actual->tiempo_espera_IO_total += proceso_actual->tiempo_esperaIO_actual;
                 proceso_actual->tiempo_esperaIO_actual = 0;
             }
@@ -25,7 +27,8 @@ void actualizar_waiting_cola(struct queue* cola){
 void actualizar_espera_ready_cola(struct queue* cola){
     struct process* proceso_actual = cola->cabeza;
     while(proceso_actual != NULL){
-        if(strcmp(proceso_actual->estado, "READY")==0){
+        if(proceso_actual->estado == READY){
+        //if(strcmp(proceso_actual->estado, "READY")==0){
             proceso_actual->tiempo_espera_ready_total++;
         }
     }
@@ -52,7 +55,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
     bool programa_activo = true;
     bool cpu_ocupada = false;
     struct process* proceso_ejecutandose = NULL;
-    char cola_asignada = "";
+    char cola_asignada = 'A';
     struct queue* cola_actual = NULL;
 
     while(programa_activo){
@@ -68,22 +71,24 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         // Manejo del proceso RUNNING
         if(cpu_ocupada){
             proceso_ejecutandose->tiempo_burst_actual++;
-            if(cola_asignada != "L"){
+            if(cola_asignada != 'L'){
                 // Caso de ejecución en quantum (READY, WAITING o FINISHED)
                 if(proceso_ejecutandose->tiempo_burst_actual == proceso_ejecutandose->tiempo_burst){
                     proceso_ejecutandose->rafagas_realizadas++;
                     if(proceso_ejecutandose->rafagas_realizadas == proceso_ejecutandose->n_bursts){
                         // Caso FINISHED
-                        strcpy(proceso_ejecutandose->estado, "FINISHED");
+                        proceso_ejecutandose->estado = FINISHED;
+                        //strcpy(proceso_ejecutandose->estado, "FINISHED");
                         // Añadir a la cola de procesos terminados
                         procesos_terminados[n_procesos_terminados] = proceso_ejecutandose;
                         n_procesos_terminados++;
                     }
                     else{
                         // Caso WAITING
-                        strcpy(proceso_ejecutandose->estado, "WAITING");
+                        proceso_ejecutandose->estado = WAITING;
+                        //strcpy(proceso_ejecutandose->estado, "WAITING");
                         // TODO: Reinsertar en la cola de origen
-                        insertar_cola(cola_asignada, proceso_ejecutandose);
+                        insertar_cola(cola_actual, proceso_ejecutandose);
                     }
                     cpu_ocupada = false;
                     proceso_ejecutandose->tiempo_burst_total += proceso_ejecutandose->tiempo_burst_actual;
@@ -103,13 +108,14 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 else if(cola_actual->quantum_actual == cola_actual->quantum_queue){
                     // Caso acaba el quantum sin terminar el burst
                     // Cambiar estado a READY
-                    strcpy(proceso_ejecutandose->estado, "READY");
+                    proceso_ejecutandose->estado = READY;
+                    //strcpy(proceso_ejecutandose->estado, "READY");
                     // Debo bajar a cola de menor prioridad
                     struct queue* cola_baja = NULL;
-                    if(cola_asignada == "H"){
+                    if(cola_asignada == 'H'){
                         cola_baja = colaM;
                     }
-                    else if(cola_asignada == "M"){
+                    else if(cola_asignada =='M'){
                         cola_baja = colaL;
                     }
                     insertar_cola(cola_baja, proceso_ejecutandose);
@@ -126,16 +132,18 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 if(proceso_ejecutandose->tiempo_burst_actual == proceso_ejecutandose->tiempo_burst){
                     if(proceso_ejecutandose->rafagas_realizadas == proceso_ejecutandose->n_bursts){
                         // Caso FINISHED
-                        strcpy(proceso_ejecutandose->estado, "FINISHED");
+                        proceso_ejecutandose->estado = FINISHED;
+                        //strcpy(proceso_ejecutandose->estado, "FINISHED");
                         // Añadir a la cola de procesos terminados
                         procesos_terminados[n_procesos_terminados] = proceso_ejecutandose;
                         n_procesos_terminados++;
                     }
                     else{
                         // Caso WAITING
-                        strcpy(proceso_ejecutandose->estado, "WAITING");
+                        proceso_ejecutandose->estado = WAITING;
+                        //strcpy(proceso_ejecutandose->estado, "WAITING");
                         // TODO: Reinsertar en la cola de origen
-                        insertar_cola(cola_asignada, proceso_ejecutandose);
+                        insertar_cola(cola_actual, proceso_ejecutandose);
                     }
                     cpu_ocupada = false;
                     proceso_ejecutandose->tiempo_burst_total += proceso_ejecutandose->tiempo_burst_actual;
@@ -157,7 +165,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 proceso_subido = pop_cabeza(colaM); // Subo los de colaM
             }
             // Subo los de colaL
-            struct process* proceso_subido = pop_cabeza(colaL);
+            proceso_subido = pop_cabeza(colaL);
             while(proceso_subido != NULL){
                 proceso_subido->cola_asignada = 'M';
                 insertar_cola(colaM, proceso_subido);
@@ -170,7 +178,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             if(proceso_ejecutandose == NULL){
                 //Ver que hacer en este caso
                 // Pues aquí todos estarían en WAITING o no hay procesos
-                if(procesos_terminados == procesos_totales){
+                if(n_procesos_terminados == procesos_totales){
                     programa_activo = false;
                     break;
                 }
@@ -182,7 +190,6 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             else{
                 // ME da un resultado válido
                 char cola_asignada = proceso_ejecutandose->cola_asignada;
-                struct queue* cola_actual = NULL;
                 if(cola_asignada == 'H'){
                     cola_actual = colaH;
                     //cola_actual->quantum_actual++; // Activar si cuenta como que se empieza a ejecutar en ese tick

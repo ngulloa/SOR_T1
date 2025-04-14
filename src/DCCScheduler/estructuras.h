@@ -8,13 +8,14 @@ typedef enum { HIGH, MEDIUM, LOW } QueueType;
 typedef enum { READY, WAITING, RUNNING, FINISHED} State;
 
 typedef struct proceso {
-    char nombre[256];
+    char* nombre;
     pid_t pid;
     State estado;
     int tiempo_rafaga;
     int n_rafagas;
     int tiempo_espera_io;
     int prioridad;
+    int tiempo_inicio
   } Proceso;
 
 typedef struct queue {
