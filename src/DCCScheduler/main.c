@@ -51,6 +51,10 @@ int main(int argc, char const *argv[])
 		printf("\n");
 
 		// Agregar a la lista de procesos
+		/* Debo incluir en la LL al final pero ordenado con los t_inicio
+		Mover while(nuevo->t_inicio <=??? actual->t_inicio) 
+		Ver condición de lo de ser NULL y que esto esté bien*/
+
 
 		free(nuevo_proceso);
 	}
