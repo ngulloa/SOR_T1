@@ -36,8 +36,8 @@ void actualizar_espera_ready_cola(struct queue* cola){
     }
 }
 
-struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* colaM, struct queue* colaL){
-    struct process* proceso_actual = NULL;
+struct proceso* obtener_siguiente_proceso(struct queue* colaH, struct queue* colaM, struct queue* colaL){
+    struct proceso* proceso_actual = NULL;
     // Verificar si hay procesos en la cola de alta prioridad
     proceso_actual = extraer_cola(colaH);
     if(proceso_actual == NULL){
@@ -50,14 +50,12 @@ struct process* obtener_siguiente_proceso(struct queue* colaH, struct queue* col
 }
 
 // GENERAR OUTPUT FILE
-void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
+void generar_output_file(Proceso** procesos_terminados, const char* nombre_archivo, int n_procesos){
     FILE* archivo = fopen(nombre_archivo, "w");
 
     //fprintf(archivo, "Nombre,PID,TurnaroundTime,ResponseTime,WaitingTime,CambiosCola\n");
-
-    Proceso* actual = cabeza;
-    while (actual != NULL) {
-
+    for(int i = 0; i < n_procesos; i++){
+        Proceso* actual = procesos_terminados[i];
         fprintf(archivo, "%s,%d,%d,%d,%d,%d\n",
             actual->nombre,
             actual->pid,
@@ -66,19 +64,27 @@ void generar_output_file(Proceso* cabeza, const char* nombre_archivo){
             actual->t_waiting_total,
             actual->cambios_cola
         );
-
-        actual = actual->siguiente;
     }
-
     fclose(archivo);
 
     printf("Información de procesos guardada en: %s\n", nombre_archivo);
 }
 
+void liberar_memoria(struct queue* colaH, struct queue* colaM, struct queue* colaL, struct proceso** procesos_terminados, int procesos_totales){
+    // Liberar memoria de los procesos terminados
+    for(int i = 0; i < procesos_totales; i++){
+        free(procesos_terminados[i]);
+    }
+    free(procesos_terminados);
+    free(colaH);
+    free(colaM);
+    free(colaL);
+}
+
 void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos, const char* output){
     int tick_actual = 0;
     int n_procesos_terminados = 0;
-    struct proceso** procesos_terminados = calloc(procesos_totales, sizeof(struct process*));
+    struct proceso** procesos_terminados = calloc(procesos_totales, sizeof(struct proceso*));
     bool programa_activo = true;
     bool cpu_ocupada = false;
     struct proceso* proceso_ejecutandose = NULL;
@@ -252,18 +258,8 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
     }
 
     // MAnejar Output
-    generar_output_file(procesos_terminados, output);
+    generar_output_file(procesos_terminados, output, n_procesos_terminados);
     liberar_memoria(colaH, colaM, colaL, procesos_terminados, procesos_totales);
 }
 
 
-void liberar_memoria(struct queue* colaH, struct queue* colaM, struct queue* colaL, struct process** procesos_terminados, int procesos_totales){
-    // Liberar memoria de los procesos terminados
-    for(int i = 0; i < procesos_totales; i++){
-        free(procesos_terminados[i]);
-    }
-    free(procesos_terminados);
-    free(colaH);
-    free(colaM);
-    free(colaL);
-}
