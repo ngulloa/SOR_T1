@@ -58,6 +58,8 @@ void insertar_cola(Queue* cola, Proceso* nuevo);
 Proceso*  extraer_cola(Queue* cola);
 
 
-void insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo);
+Proceso* insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo);
 
-void extraer_almacencamiento(Proceso* almacenamiento, int n_ticks, Queue* colaH, Queue* colaM, Queue* colaL);
+Proceso* extraer_almacencamiento(Proceso* almacenamiento, int n_ticks, Queue* colaH, Queue* colaM, Queue* colaL);
+
+void printCola(struct queue* cola);

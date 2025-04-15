@@ -11,13 +11,15 @@ int main(int argc, char const *argv[])
 	char *output_file_name = (char *)argv[2];
 	int quantum = atoi(argv[3]);
 	int n_ticks = atoi(argv[4]);
-	struct proceso* todos_procesos = NULL;
+	
 	
 	printf("output_file %s, quantum %d, n_ticks %d\n", output_file_name, quantum, n_ticks);
 	InputFile *input_file = read_file(file_name);
 
 	/*Mostramos el archivo de input en consola*/
 	int n_procesos = input_file->len;
+	struct proceso* todos_procesos = NULL;
+	
 	printf("Cantidad de procesos: %d\n", input_file->len);
 	printf("Procesos:\n");
 	for (int i = 0; i < input_file->len; ++i)
@@ -32,6 +34,8 @@ int main(int argc, char const *argv[])
 		nuevo_proceso->tiempo_espera_io = atoi(input_file->lines[i][5]);
 		nuevo_proceso->prioridad = atoi(input_file->lines[i][6]);
 		nuevo_proceso->estado = READY;
+		nuevo_proceso->siguiente = NULL;
+		nuevo_proceso->siguiente_almacenamiento = NULL;
 		
 /* 		printf("  NOMBRE_PROCESO: %s\n", input_file->lines[i][0]);
 		printf("  PID: %s\n", input_file->lines[i][1]);
@@ -51,11 +55,11 @@ int main(int argc, char const *argv[])
 		printf("\n");
 
 		// Agregar a la lista de procesos
-		insertar_almacenamiento(todos_procesos, nuevo_proceso);
+		todos_procesos = insertar_almacenamiento(todos_procesos, nuevo_proceso);
 	}
 
-	input_file_destroy(input_file);
-
+	
+	printf("=== Fin de lectura del archivo ===\n");
 	Queue* colaH = calloc(1, sizeof(Queue));
 	colaH->tipo = HIGH;
 	colaH->quantum_base = quantum*2;
@@ -66,5 +70,7 @@ int main(int argc, char const *argv[])
 	colaM->quantum_actual = 0;
 	Queue* colaL = calloc(1, sizeof(Queue));
 	colaL->tipo = LOW;
+	//printLL(todos_procesos);
 	logica_programa(colaH, colaM, colaL,n_procesos, n_ticks, todos_procesos, output_file_name);
+	input_file_destroy(input_file);
 }

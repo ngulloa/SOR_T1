@@ -54,39 +54,71 @@ Proceso* extraer_cola(Queue* cola){
     return NULL;
 }
 
-void insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo){
+Proceso* insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo){
+    printf("ALMAC [%p]\n", almacenamiento);
     if(almacenamiento == NULL){
+        //printf("Creando el head de almacenamiento\n");
         almacenamiento = nuevo;
+        //printf("NEO ALMAC [%p]\n", almacenamiento);
+        return almacenamiento;
     }
     else{
         if(nuevo->t_inicio < almacenamiento->t_inicio){
             nuevo->siguiente_almacenamiento = almacenamiento;
             almacenamiento = nuevo;
-            return;
+            //printf("Actualizando el head de almacenamiento\n");
+            return almacenamiento;
         }
         Proceso* actual = almacenamiento->siguiente_almacenamiento;
         Proceso* previo = almacenamiento;
-        while(actual->siguiente_almacenamiento != NULL){
+        while(actual != NULL){
             if(nuevo->t_inicio < actual->t_inicio){
                 nuevo->siguiente_almacenamiento = actual;
                 previo->siguiente_almacenamiento = nuevo;
-                return;
+                return almacenamiento;
             }
             previo = actual;
             actual = actual->siguiente_almacenamiento;
         }
-        actual->siguiente_almacenamiento = nuevo;
-        return;
+        previo->siguiente_almacenamiento = nuevo;
+        return almacenamiento;
     }
 }
 
-void extraer_almacencamiento(Proceso* almacenamiento, int n_ticks, Queue* colaH, Queue* colaM, Queue* colaL){
+Proceso* extraer_almacencamiento(Proceso* almacenamiento, int n_ticks, Queue* colaH, Queue* colaM, Queue* colaL){
     Proceso* actual = almacenamiento;
-    while(actual != NULL && actual->t_inicio == n_ticks){
-        Proceso* proceso_extraido = actual;
-        actual = actual->siguiente_almacenamiento;
-        // TODO: Insertar en la colas
-        insertar_colas(proceso_extraido, colaH, colaM, colaL);
+    
+    if(actual != NULL){
+        printf("==== ALMACENAMIENTO ====\n");
+        printf("Viendo si extraigo para tick = (%d)\n", n_ticks);
+        printf(" = Head actual t_inicio = (%d)\n", actual->t_inicio);
+        while(actual != NULL && actual->t_inicio == n_ticks){
+            Proceso* proceso_extraido = actual;
+            printf("== Proceso extraido: %s\n", proceso_extraido->nombre);
+            actual = actual->siguiente_almacenamiento;
+            almacenamiento = actual;
+            // TODO: Insertar en la colas
+            insertar_colas(proceso_extraido, colaH, colaM, colaL);
+        }
+        printf("==== ------------ ====\n");
     }
-    return;
+    
+    return almacenamiento;
+}
+
+void printCola(struct queue* cola){
+    Proceso* actual = cola->primero;
+    if(cola->tipo == HIGH){
+        printf("[Cola Alta Prioridad]:\n");
+    }
+    else if(cola->tipo == MEDIUM){
+        printf("[Cola Media Prioridad]:\n");
+    }
+    else if(cola->tipo == LOW){
+        printf("[Cola Baja Prioridad]:\n");
+    }
+    while(actual != NULL){
+        printf("    - Proceso: %s, PID: %d, Estado: %d\n", actual->nombre, actual->pid, actual->estado);
+        actual = actual->siguiente;
+    }
 }

@@ -11,6 +11,18 @@
 
 void actualizar_waiting_cola(struct queue* cola){
     struct proceso* proceso_actual = cola->primero;
+    char* nombre_cola = NULL;
+    if(cola->tipo == HIGH){
+        nombre_cola = "HIGH";
+    }
+    else if(cola->tipo == MEDIUM){
+        nombre_cola = "MEDIUM";
+    }
+    else if(cola->tipo == LOW){
+        nombre_cola = "LOW";
+    }
+    printf("[> Actualizando WAITING en cola: %s]\n", nombre_cola);
+    //printf(" - Actual: [%p]\n", proceso_actual);
     while(proceso_actual != NULL){
         if(proceso_actual->estado == WAITING){
         //if(strcmp(proceso_actual->estado, "WAITING")==0){
@@ -24,15 +36,28 @@ void actualizar_waiting_cola(struct queue* cola){
                 proceso_actual->t_waiting_actual = 0;
             }
         }
+        proceso_actual = proceso_actual->siguiente;
     }
 }
 void actualizar_espera_ready_cola(struct queue* cola){
     struct proceso* proceso_actual = cola->primero;
+    char* nombre_cola = NULL;
+    if(cola->tipo == HIGH){
+        nombre_cola = "HIGH";
+    }
+    else if(cola->tipo == MEDIUM){
+        nombre_cola = "MEDIUM";
+    }
+    else if(cola->tipo == LOW){
+        nombre_cola = "LOW";
+    }
+    printf("[> Actualizando READY en cola: %s]\n", nombre_cola);
     while(proceso_actual != NULL){
         if(proceso_actual->estado == READY){
         //if(strcmp(proceso_actual->estado, "READY")==0){
             proceso_actual->t_ready_total++;
         }
+        proceso_actual = proceso_actual->siguiente;
     }
 }
 
@@ -80,6 +105,17 @@ void liberar_memoria(struct queue* colaH, struct queue* colaM, struct queue* col
     free(colaM);
     free(colaL);
 }
+void printLL(struct proceso* head){
+    printf("- Lista de procesos:\n");
+    struct proceso* current = head;
+    //printf(" > Cabeza: [%p]\n", current);
+    while (current != NULL) {
+        //printf(" > Actual: [%p]\n", current);
+        printf(" > Proceso: %s con t_inicio = (%d)\n", current->nombre, current->t_inicio);
+        current = current->siguiente_almacenamiento;
+    }
+    printf("-----\n");
+}
 
 void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* colaL, int procesos_totales, int n_ticks, Proceso* todos_procesos, const char* output){
     int tick_actual = 0;
@@ -90,9 +126,17 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
     struct proceso* proceso_ejecutandose = NULL;
     char cola_asignada = 'A';
     struct queue* cola_actual = NULL;
-
-    while(programa_activo){
+    // TODO: Quitar el || en adelante, es por tests
+    while(programa_activo && tick_actual<10){
         tick_actual++;
+        printf("\n[> Tick]: %d\n", tick_actual);
+        printf("[> CPU]: %s\n", cpu_ocupada ? "Ocupada" : "Libre");
+        printf("[> n_procesos_terminados]: %d\n", n_procesos_terminados);
+        printLL(todos_procesos);
+        /* printCola(colaH);
+        printCola(colaM);
+        printCola(colaL); */
+        
         actualizar_waiting_cola(colaH);
         actualizar_waiting_cola(colaM);
         actualizar_waiting_cola(colaL);
@@ -104,6 +148,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         //TODO: Ver si debo compensar con un - si lo selecciono
         //==============================
         // Manejo del proceso RUNNING
+
         if(cpu_ocupada){
             proceso_ejecutandose->t_burst_actual++;
             if(cola_asignada != 'L'){
@@ -197,7 +242,11 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         }
         //==============================
         // Veo si puedo ingresar procesos según su t_inicio
-        extraer_almacencamiento(todos_procesos, n_ticks, colaH, colaM, colaL);
+
+        todos_procesos = extraer_almacencamiento(todos_procesos, tick_actual, colaH, colaM, colaL);
+        printCola(colaH);
+        printCola(colaM);
+        printCola(colaL);
         //==============================
         // Ahora verifico los "n" ticks y subo de cola
         if(tick_actual%n_ticks == 0){
@@ -222,6 +271,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         // Ahora asigno proceso a CPU en caso de no haber
         if(!cpu_ocupada){
             proceso_ejecutandose = obtener_siguiente_proceso(colaH, colaM, colaL);
+            
             if(proceso_ejecutandose == NULL){
                 //Ver que hacer en este caso
                 // Pues aquí todos estarían en WAITING o no hay procesos
@@ -236,6 +286,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             }
             else{
                 // ME da un resultado válido
+                cpu_ocupada = true;
                 char cola_asignada = proceso_ejecutandose->cola_asignada;
                 if(cola_asignada == 'H'){
                     cola_actual = colaH;
@@ -254,6 +305,10 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             }
         }
         //==============================
+        if(n_procesos_terminados == procesos_totales){
+            programa_activo = false;
+            break;
+        }
 
     }
 
