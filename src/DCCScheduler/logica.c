@@ -90,11 +90,13 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         actualizar_waiting_cola(colaH);
         actualizar_waiting_cola(colaM);
         actualizar_waiting_cola(colaL);
-        
+        //==============================
         // Coloco esto aquí porque creo importante guardar el tiempo de espera en la cola
         actualizar_espera_ready_cola(colaH);
         actualizar_espera_ready_cola(colaM);
         actualizar_espera_ready_cola(colaL);
+        //TODO: Ver si debo compensar con un - si lo selecciono
+        //==============================
         // Manejo del proceso RUNNING
         if(cpu_ocupada){
             proceso_ejecutandose->t_burst_actual++;
@@ -141,8 +143,13 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     struct queue* cola_baja = NULL;
                     if(cola_asignada == 'H'){
                         cola_baja = colaM;
+                        proceso_ejecutandose->cambios_cola++;
                     }
                     else if(cola_asignada =='M'){
+                        cola_baja = colaL;
+                        proceso_ejecutandose->cambios_cola++;
+                    }
+                    else{
                         cola_baja = colaL;
                     }
                     insertar_cola(cola_baja, proceso_ejecutandose);
@@ -182,8 +189,10 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 }
             }
         }
+        //==============================
         // Veo si puedo ingresar procesos según su t_inicio
         extraer_almacencamiento(todos_procesos, n_ticks, colaH, colaM, colaL);
+        //==============================
         // Ahora verifico los "n" ticks y subo de cola
         if(tick_actual%n_ticks == 0){
             // Subo los de colaM
@@ -191,16 +200,19 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             while(proceso_subido != NULL){
                 proceso_subido->cola_asignada = 'H';
                 insertar_cola(colaH, proceso_subido);
+                proceso_subido->cambios_cola++;
                 proceso_subido = extraer_cola(colaM); // Subo los de colaM
             }
             // Subo los de colaL
             proceso_subido = extraer_cola(colaL);
             while(proceso_subido != NULL){
                 proceso_subido->cola_asignada = 'M';
+                proceso_subido->cambios_cola++;
                 insertar_cola(colaM, proceso_subido);
                 proceso_subido = extraer_cola(colaL); // Subo los de colaL
             }
         }
+        //==============================
         // Ahora asigno proceso a CPU en caso de no haber
         if(!cpu_ocupada){
             proceso_ejecutandose = obtener_siguiente_proceso(colaH, colaM, colaL);
@@ -232,9 +244,10 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 }
                 //proceso_ejecutandose->tiempo_espera_ready_total-=1; // Activar en caso de que empiece a ejecutar en este mismo tick
                 // TODO: Aregar lógica en caso que se empiece a ejecutar en este mismo tick
-                // ...
+                // Aquí asumo que no estoy ejecutando en el mismo tick, que debo esperar al siguiente
             }
         }
+        //==============================
 
     }
 

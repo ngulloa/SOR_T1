@@ -13,7 +13,7 @@ void insertar_cola(Queue* cola, Proceso* nuevo){
         Proceso* actual = cola->primero;
         Proceso* previo = NULL;
         while(actual != NULL && actual->prioridad <= nuevo->prioridad){
-            if(actual->prioridad < nuevo->prioridad){
+            if(actual->pid < nuevo->pid){
                 break;
             }
             previo = actual;
