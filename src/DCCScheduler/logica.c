@@ -21,7 +21,7 @@ void actualizar_waiting_cola(struct queue* cola){
     else if(cola->tipo == LOW){
         nombre_cola = "LOW";
     }
-    printf("[> Actualizando WAITING en cola: %s]\n", nombre_cola);
+    printf("    [> Actualizando WAITING en cola: %s]\n", nombre_cola);
     //printf(" - Actual: [%p]\n", proceso_actual);
     while(proceso_actual != NULL){
         if(proceso_actual->estado == WAITING){
@@ -51,7 +51,7 @@ void actualizar_espera_ready_cola(struct queue* cola){
     else if(cola->tipo == LOW){
         nombre_cola = "LOW";
     }
-    printf("[> Actualizando READY en cola: %s]\n", nombre_cola);
+    printf("    [> Actualizando READY en cola: %s]\n", nombre_cola);
     while(proceso_actual != NULL){
         if(proceso_actual->estado == READY){
         //if(strcmp(proceso_actual->estado, "READY")==0){
@@ -131,17 +131,21 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         tick_actual++;
         printf("\n[> Tick]: %d\n", tick_actual);
         printf("[> CPU]: %s\n", cpu_ocupada ? "Ocupada" : "Libre");
+/*         if(cpu_ocupada){
+            printf("    [- Proceso: %s, PID: %d, Estado: %d]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid, proceso_ejecutandose->estado);
+        } */
         printf("[> n_procesos_terminados]: %d\n", n_procesos_terminados);
         printLL(todos_procesos);
         /* printCola(colaH);
         printCola(colaM);
         printCola(colaL); */
-        
+        printf("[>> Actualizando Procesos Esperando IO]\n");
         actualizar_waiting_cola(colaH);
         actualizar_waiting_cola(colaM);
         actualizar_waiting_cola(colaL);
         //==============================
         // Coloco esto aquí porque creo importante guardar el tiempo de espera en la cola
+        printf("[>> Actualizando Procesos Esperando en Colas]\n");
         actualizar_espera_ready_cola(colaH);
         actualizar_espera_ready_cola(colaM);
         actualizar_espera_ready_cola(colaL);
@@ -150,13 +154,17 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         // Manejo del proceso RUNNING
 
         if(cpu_ocupada){
+            printf("[>> Procesando Ejecución del Proceso]\n");
             proceso_ejecutandose->t_burst_actual++;
-            if(cola_asignada != 'L'){
+            printf("    [- Proceso: %s, t_burst: (%d/%d)]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->t_burst_actual, proceso_ejecutandose->tiempo_rafaga);
+            if(cola_actual->tipo != LOW){
                 // Caso de ejecución en quantum (READY, WAITING o FINISHED)
+                printf("    [- Cola t_quantum : (%d/%d)]\n", cola_actual->quantum_actual, cola_actual->quantum_base);
                 if(proceso_ejecutandose->t_burst_actual == proceso_ejecutandose->tiempo_rafaga){
                     proceso_ejecutandose->rafagas_hechas++;
                     if(proceso_ejecutandose->rafagas_hechas == proceso_ejecutandose->n_rafagas){
                         // Caso FINISHED
+                        printf("        [- Proceso: %s, PID: %d ha pasado a: FINISHED]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid);
                         proceso_ejecutandose->estado = FINISHED;
                         //strcpy(proceso_ejecutandose->estado, "FINISHED");
                         // Añadir a la cola de procesos terminados
@@ -165,12 +173,14 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     }
                     else{
                         // Caso WAITING
+                        printf("        [- Proceso: %s, PID: %d ha pasado a: WAITING]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid);
                         proceso_ejecutandose->estado = WAITING;
                         //strcpy(proceso_ejecutandose->estado, "WAITING");
                         // TODO: Reinsertar en la cola de origen
                         insertar_cola(cola_actual, proceso_ejecutandose);
                     }
                     cpu_ocupada = false;
+                    printf("    [- Liberando CPU]\n");
                     proceso_ejecutandose->t_burst_total += proceso_ejecutandose->t_burst_actual;
                     proceso_ejecutandose->t_burst_actual = 0;
                     if(cola_actual->quantum_actual == cola_actual->quantum_base){
@@ -185,6 +195,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                         // Aquí el quantum no se reinicia
                     }
                 }
+                // TODO: Revisar si esto funciona
                 else if(cola_actual->quantum_actual == cola_actual->quantum_base){
                     // Caso acaba el quantum sin terminar el burst
                     // Cambiar estado a READY
@@ -217,6 +228,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 if(proceso_ejecutandose->t_burst_actual == proceso_ejecutandose->tiempo_rafaga){
                     if(proceso_ejecutandose->rafagas_hechas == proceso_ejecutandose->n_rafagas){
                         // Caso FINISHED
+                        printf("        [- Proceso: %s, PID: %d ha pasado a: FINISHED]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid);
                         proceso_ejecutandose->estado = FINISHED;
                         //strcpy(proceso_ejecutandose->estado, "FINISHED");
                         // Añadir a la cola de procesos terminados
@@ -225,11 +237,13 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     }
                     else{
                         // Caso WAITING
+                        printf("        [- Proceso: %s, PID: %d ha pasado a: WAITING]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid);
                         proceso_ejecutandose->estado = WAITING;
                         //strcpy(proceso_ejecutandose->estado, "WAITING");
                         // TODO: Reinsertar en la cola de origen
                         insertar_cola(cola_actual, proceso_ejecutandose);
                     }
+                    printf("    [- Liberando CPU]\n");
                     cpu_ocupada = false;
                     proceso_ejecutandose->t_burst_total += proceso_ejecutandose->t_burst_actual;
                     proceso_ejecutandose->t_burst_actual = 0;
