@@ -25,8 +25,10 @@ void insertar_cola(Queue* cola, Proceso* nuevo){
             cola->primero = nuevo;
         }
         else{
+            
             previo->siguiente = nuevo;
             nuevo->siguiente = actual;
+            printf(" ^^^^ previo: [%p] nuevo: [%p] actual: [%p]\n", previo, nuevo, actual);
         }
         return;
     }
@@ -56,12 +58,15 @@ Proceso* extraer_cola(Queue* cola){
             extraido = actual;
             if(previo == NULL){
                 cola->primero = actual->siguiente;
+                extraido->siguiente = NULL;
                 break;
             }
             else{
                 previo->siguiente = actual->siguiente;
+                extraido->siguiente = NULL;
                 break;
             }
+            
         }
         previo = actual;
         actual = actual->siguiente;
@@ -150,6 +155,7 @@ void printCola(struct queue* cola){
                 estado_proceso = "FINISHED";
             }
             printf("    - Proceso: %s, PID: %d, Estado: %s\n", actual->nombre, actual->pid, estado_proceso);
+            printf("    - Actual: [%p], siquiente [%p]\n", actual, actual->siguiente);
             //printf("    - Proceso: %s, PID: %d, Estado: %d\n", actual->nombre, actual->pid, actual->estado);
             actual = actual->siguiente;
         }

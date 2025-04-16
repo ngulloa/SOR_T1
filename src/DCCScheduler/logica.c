@@ -152,7 +152,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
     //char cola_asignada = 'A';
     struct queue* cola_actual = NULL;
     // TODO: Quitar el || en adelante, es por tests
-    while(programa_activo && tick_actual<30){
+    while(programa_activo){
         tick_actual++;
         printf("\n[>> Tick]: %d ==========\n", tick_actual);
         printf("    [> CPU]: %s\n", cpu_ocupada ? "Ocupada" : "Libre");
@@ -299,7 +299,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         //==============================
         // Ahora verifico los "n" ticks y subo de cola
         if(tick_actual%n_ticks == 0){
-            printf("[>> Tick (%d/%d), subiendo de Cola]\n", tick_actual, n_ticks);
+            printf("[>> Se han cumplido (%d/%d) ticks, subiendo de Cola]\n", tick_actual, n_ticks);
             // Subo los de colaM
             struct proceso* proceso_subido = extraer_cola(colaM);
             while(proceso_subido != NULL){
@@ -318,6 +318,11 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                 insertar_cola(colaM, proceso_subido);
                 proceso_subido = extraer_cola(colaL); // Subo los de colaL
             }
+            // TODO: Eliminar
+            printCola(colaH);
+            printCola(colaM);
+            printCola(colaL);
+            //break;
         }
         //==============================
         // Ahora asigno proceso a CPU en caso de no haber
