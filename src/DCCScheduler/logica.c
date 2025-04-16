@@ -186,9 +186,9 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             //printf("    [- Cola: %s]\n", proceso_ejecutandose->cola_asignada == HIGH ? "HIGH" : (proceso_ejecutandose->cola_asignada == MEDIUM ? "MEDIUM" : "LOW"));
             printf("    [- Cola actual: %s]\n", cola_actual->tipo == HIGH ? "HIGH" : (cola_actual->tipo == MEDIUM ? "MEDIUM" : "LOW"));
             if(cola_actual->tipo != LOW){
-                cola_actual->quantum_actual++;
+                proceso_ejecutandose->quantum_actual++;
                 // Caso de ejecución en quantum (READY, WAITING o FINISHED)
-                printf("    [- Cola t_quantum : (%d/%d)]\n", cola_actual->quantum_actual, cola_actual->quantum_base);
+                printf("    [- Cola t_quantum : (%d/%d)]\n", proceso_ejecutandose->quantum_actual, cola_actual->quantum_base);
                 if(proceso_ejecutandose->t_burst_actual == proceso_ejecutandose->tiempo_rafaga){
                     proceso_ejecutandose->rafagas_hechas++;
                     if(proceso_ejecutandose->rafagas_hechas == proceso_ejecutandose->n_rafagas){
@@ -212,11 +212,11 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     printf("    [- Liberando CPU]\n");
                     proceso_ejecutandose->t_burst_total += proceso_ejecutandose->t_burst_actual;
                     proceso_ejecutandose->t_burst_actual = 0;
-                    if(cola_actual->quantum_actual == cola_actual->quantum_base){
+                    if(proceso_ejecutandose->quantum_actual == cola_actual->quantum_base){
                         // Caso se acabó el quantum
                         // Pero como se considera que terminó su ráfaga y por ello cede, no se reinicia quantum
                         // TODO: Ver qué pasa acá, si debo reiniciar el quantum o no
-                        cola_actual->quantum_actual = 0;
+                        proceso_ejecutandose->quantum_actual = 0;
                         // De momento asumiré que se reinicia, pues tiraría un proceso sin quantum
                     }
                     else{
@@ -225,7 +225,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     }
                 }
                 // TODO: Revisar si esto funciona
-                else if(cola_actual->quantum_actual == cola_actual->quantum_base){
+                else if(proceso_ejecutandose->quantum_actual == cola_actual->quantum_base){
                     // Caso acaba el quantum sin terminar el burst
                     // Cambiar estado a READY
                     printf("    [- Se ha acabado el quantum, liberando CPU]\n");
@@ -251,7 +251,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     }
                     insertar_cola(cola_baja, proceso_ejecutandose);
                     // REiniciar quantum
-                    cola_actual->quantum_actual = 0;
+                    proceso_ejecutandose->quantum_actual = 0;
                 }
                 else{
                     // Caso donde quantum y burst todavía no terminan

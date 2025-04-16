@@ -43,6 +43,7 @@ typedef struct proceso {
     int cambios_cola;
 
     bool entrado;
+    int quantum_actual;
     QueueType cola_asignada;    
   } Proceso;
 
@@ -52,7 +53,7 @@ typedef struct queue {
     //Proceso* ultimo;    // Último proceso en la cola
     QueueType tipo;
     int quantum_base;    /* Si es FIFO no será necesario */
-    int quantum_actual;
+    //int quantum_actual;
 } Queue;
 
 

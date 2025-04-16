@@ -37,6 +37,7 @@ int main(int argc, char const *argv[])
 		nuevo_proceso->siguiente = NULL;
 		nuevo_proceso->siguiente_almacenamiento = NULL;
 		nuevo_proceso->entrado = false;
+		nuevo_proceso->quantum_actual = 0;
 		
 /* 		printf("  NOMBRE_PROCESO: %s\n", input_file->lines[i][0]);
 		printf("  PID: %s\n", input_file->lines[i][1]);
@@ -64,11 +65,9 @@ int main(int argc, char const *argv[])
 	Queue* colaH = calloc(1, sizeof(Queue));
 	colaH->tipo = HIGH;
 	colaH->quantum_base = quantum*2;
-	colaH->quantum_actual = 0;
 	Queue* colaM= calloc(1, sizeof(Queue));
 	colaM->tipo = MEDIUM;
 	colaM->quantum_base = quantum;
-	colaM->quantum_actual = 0;
 	Queue* colaL = calloc(1, sizeof(Queue));
 	colaL->tipo = LOW;
 	//printLL(todos_procesos);
