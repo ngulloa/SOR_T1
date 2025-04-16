@@ -2,6 +2,7 @@
 #include <stdio.h>	// FILE, fopen, fclose, etc.
 #include <stdlib.h> // malloc, calloc, free, etc
 #include <sys/types.h>
+#include <stdbool.h> 
 #include "../file_manager/manager.h"
 
 typedef enum { HIGH, MEDIUM, LOW } QueueType;
@@ -40,6 +41,8 @@ typedef struct proceso {
     int rafagas_hechas;
 
     int cambios_cola;
+
+    bool entrado;
     QueueType cola_asignada;    
   } Proceso;
 

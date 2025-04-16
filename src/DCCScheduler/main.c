@@ -36,6 +36,7 @@ int main(int argc, char const *argv[])
 		nuevo_proceso->estado = READY;
 		nuevo_proceso->siguiente = NULL;
 		nuevo_proceso->siguiente_almacenamiento = NULL;
+		nuevo_proceso->entrado = false;
 		
 /* 		printf("  NOMBRE_PROCESO: %s\n", input_file->lines[i][0]);
 		printf("  PID: %s\n", input_file->lines[i][1]);

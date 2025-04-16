@@ -33,6 +33,7 @@ void insertar_cola(Queue* cola, Proceso* nuevo){
 }
 
 void insertar_colas(Proceso* nuevo, Queue* colaH, Queue* colaM, Queue* colaL){
+    nuevo->estado = READY;
     int priori = nuevo->prioridad;
     if(1<=priori && priori<=10){
         insertar_cola(colaH, nuevo);
@@ -46,12 +47,27 @@ void insertar_colas(Proceso* nuevo, Queue* colaH, Queue* colaM, Queue* colaL){
 }
 
 Proceso* extraer_cola(Queue* cola){
-    if(cola->primero != NULL){
-        Proceso* extraido = cola->primero;
-        cola->primero = cola->primero->siguiente;
-        return extraido;
+    Proceso* actual = cola->primero;
+    Proceso* previo = NULL;
+    Proceso* extraido = NULL;
+    while(actual != NULL){
+        //printf("    - Proceso: %s, PID: %d, Estado: %d\n", actual->nombre, actual->pid, actual->estado);
+        if(actual->estado == READY){
+            extraido = actual;
+            if(previo == NULL){
+                cola->primero = actual->siguiente;
+                break;
+            }
+            else{
+                previo->siguiente = actual->siguiente;
+                break;
+            }
+        }
+        previo = actual;
+        actual = actual->siguiente;
+        
     }
-    return NULL;
+    return extraido;
 }
 
 Proceso* insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo){
@@ -89,18 +105,18 @@ Proceso* extraer_almacencamiento(Proceso* almacenamiento, int n_ticks, Queue* co
     Proceso* actual = almacenamiento;
     
     if(actual != NULL){
-        printf("==== ALMACENAMIENTO ====\n");
-        printf("Viendo si extraigo para tick = (%d)\n", n_ticks);
-        printf(" = Head actual t_inicio = (%d)\n", actual->t_inicio);
+        printf("{== ALMACENAMIENTO ==}\n");
+        printf("    { = Viendo si extraigo para tick = (%d)}\n", n_ticks);
+        printf("    { = Head actual t_inicio = (%d)}\n", actual->t_inicio);
         while(actual != NULL && actual->t_inicio == n_ticks){
             Proceso* proceso_extraido = actual;
-            printf("== Proceso extraido: %s\n", proceso_extraido->nombre);
+            proceso_extraido->estado = FINISHED;
+            printf("        { = Proceso extraido: %s}\n", proceso_extraido->nombre);
             actual = actual->siguiente_almacenamiento;
             almacenamiento = actual;
             // TODO: Insertar en la colas
             insertar_colas(proceso_extraido, colaH, colaM, colaL);
         }
-        printf("==== ------------ ====\n");
     }
     
     return almacenamiento;
@@ -108,17 +124,35 @@ Proceso* extraer_almacencamiento(Proceso* almacenamiento, int n_ticks, Queue* co
 
 void printCola(struct queue* cola){
     Proceso* actual = cola->primero;
-    if(cola->tipo == HIGH){
-        printf("[Cola Alta Prioridad]:\n");
+    if(actual != NULL){
+        if(cola->tipo == HIGH){
+            printf("[Cola Alta Prioridad]:\n");
+        }
+        else if(cola->tipo == MEDIUM){
+            printf("[Cola Media Prioridad]:\n");
+        }
+        else if(cola->tipo == LOW){
+            printf("[Cola Baja Prioridad]:\n");
+        }
+        
+        while(actual != NULL){
+            char* estado_proceso = "";
+            if(actual->estado == READY){
+                estado_proceso = "READY";
+            }
+            else if(actual->estado == RUNNING){
+                estado_proceso = "RUNNING";
+            }
+            else if(actual->estado == WAITING){
+                estado_proceso = "WAITING";
+            }
+            else if(actual->estado == FINISHED){
+                estado_proceso = "FINISHED";
+            }
+            printf("    - Proceso: %s, PID: %d, Estado: %s\n", actual->nombre, actual->pid, estado_proceso);
+            //printf("    - Proceso: %s, PID: %d, Estado: %d\n", actual->nombre, actual->pid, actual->estado);
+            actual = actual->siguiente;
+        }
     }
-    else if(cola->tipo == MEDIUM){
-        printf("[Cola Media Prioridad]:\n");
-    }
-    else if(cola->tipo == LOW){
-        printf("[Cola Baja Prioridad]:\n");
-    }
-    while(actual != NULL){
-        printf("    - Proceso: %s, PID: %d, Estado: %d\n", actual->nombre, actual->pid, actual->estado);
-        actual = actual->siguiente;
-    }
+
 }
