@@ -29,9 +29,10 @@ void actualizar_waiting_cola(struct queue* cola){
             //if(strcmp(proceso_actual->estado, "WAITING")==0){
                 // Condición para que terminó de esperar
                 proceso_actual->t_waiting_actual++;
+                printf("        [* Proceso: %s, PID: %d con waiting (%d/%d)]\n", proceso_actual->nombre, proceso_actual->pid, proceso_actual->t_waiting_actual, proceso_actual->tiempo_espera_io);
                 if(proceso_actual->tiempo_espera_io == proceso_actual->t_waiting_actual){
                     // Cambiar estado a READY
-                    printf("        [* Proceso: %s, PID: %d ha pasado a: READY]\n", proceso_actual->nombre, proceso_actual->pid);
+                    printf("            [* Proceso: %s, PID: %d ha pasado a: READY]\n", proceso_actual->nombre, proceso_actual->pid);
                     proceso_actual->estado = READY;
                     //strcpy(proceso_actual->estado, "READY"); // Ver si esto sirve o asignar directamente el valor
                     proceso_actual->t_waiting_total += proceso_actual->t_waiting_actual;
@@ -93,6 +94,8 @@ void generar_output_file(Proceso** procesos_terminados, const char* nombre_archi
     printf("\n\nNombre,PID,TurnaroundTime,ResponseTime,WaitingTime,CambiosCola\n");
     for(int i = 0; i < n_procesos; i++){
         Proceso* actual = procesos_terminados[i];
+        //printf("    Ready_total: %d\n", actual->t_ready_total);
+        //printf("    Waiting_total (sin suma): %d\n", actual->t_waiting_total);
         actual->t_turnaround += actual->t_burst_total + actual->t_waiting_total + actual->t_ready_total;
         actual->t_waiting_total += actual->t_ready_total;
         printf("%s,%d,%d,%d,%d,%d\n",
@@ -103,6 +106,7 @@ void generar_output_file(Proceso** procesos_terminados, const char* nombre_archi
             actual->t_waiting_total,
             actual->cambios_cola
         );
+        
         fprintf(archivo, "%s,%d,%d,%d,%d,%d\n",
             actual->nombre,
             actual->pid,
@@ -152,6 +156,9 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
     //char cola_asignada = 'A';
     struct queue* cola_actual = NULL;
     // TODO: Quitar el || en adelante, es por tests
+    printLL(todos_procesos);
+
+
     while(programa_activo){
         tick_actual++;
         printf("\n[>> Tick]: %d ==========\n", tick_actual);
@@ -182,6 +189,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         if(cpu_ocupada){
             printf("[>> Procesando Ejecución del Proceso]\n");
             proceso_ejecutandose->t_burst_actual++;
+            cola_actual = proceso_ejecutandose->cola_asignada == HIGH ? colaH : (proceso_ejecutandose->cola_asignada == MEDIUM ? colaM : colaL);
             printf("    [- Proceso: %s, t_burst: (%d/%d) y burst realizados (%d//%d)]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->t_burst_actual, proceso_ejecutandose->tiempo_rafaga, proceso_ejecutandose->rafagas_hechas, proceso_ejecutandose->n_rafagas);
             //printf("    [- Cola: %s]\n", proceso_ejecutandose->cola_asignada == HIGH ? "HIGH" : (proceso_ejecutandose->cola_asignada == MEDIUM ? "MEDIUM" : "LOW"));
             printf("    [- Cola actual: %s]\n", cola_actual->tipo == HIGH ? "HIGH" : (cola_actual->tipo == MEDIUM ? "MEDIUM" : "LOW"));
@@ -239,19 +247,24 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
                     if(proceso_ejecutandose->cola_asignada == HIGH){
                         cola_baja = colaM;
                         proceso_ejecutandose->cambios_cola++;
+                        proceso_ejecutandose->cola_asignada = MEDIUM;
                         printf("        [- Bajando a cola MEDIUM]\n");
+                        proceso_ejecutandose->quantum_actual = 0;
                     }
                     else if(proceso_ejecutandose->cola_asignada == MEDIUM){
                         cola_baja = colaL;
                         proceso_ejecutandose->cambios_cola++;
+                        proceso_ejecutandose->cola_asignada = LOW;
                         printf("        [- Bajando a cola LOW]\n");
+                        proceso_ejecutandose->quantum_actual = 0;
                     }
                     else{
                         cola_baja = colaL;
+                        proceso_ejecutandose->quantum_actual = 0;
                     }
                     insertar_cola(cola_baja, proceso_ejecutandose);
                     // REiniciar quantum
-                    proceso_ejecutandose->quantum_actual = 0;
+                    
                 }
                 else{
                     // Caso donde quantum y burst todavía no terminan
@@ -261,6 +274,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             else{
                 // Caso de ejecución en cola baja (LOW)
                 if(proceso_ejecutandose->t_burst_actual == proceso_ejecutandose->tiempo_rafaga){
+                    proceso_ejecutandose->rafagas_hechas++;
                     if(proceso_ejecutandose->rafagas_hechas == proceso_ejecutandose->n_rafagas){
                         // Caso FINISHED
                         printf("        [- Proceso: %s, PID: %d y burst realizados (%d//%d) ha pasado a: FINISHED]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid, proceso_ejecutandose->rafagas_hechas, proceso_ejecutandose->n_rafagas);
@@ -293,6 +307,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         // Veo si puedo ingresar procesos según su t_inicio
 
         todos_procesos = extraer_almacencamiento(todos_procesos, tick_actual, colaH, colaM, colaL);
+        printf("[>> Colas]:\n");
         printCola(colaH);
         printCola(colaM);
         printCola(colaL);
@@ -301,10 +316,16 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
         if(tick_actual%n_ticks == 0){
             printf("[>> Se han cumplido (%d/%d) ticks, subiendo de Cola]\n", tick_actual, n_ticks);
             // Subo los de colaM
+
+
+
+
+
             struct proceso* proceso_subido = extraer_cola(colaM);
             while(proceso_subido != NULL){
                 printf("    [+ Proceso: %s, PID: %d ha pasado a: HIGH]\n", proceso_subido->nombre, proceso_subido->pid);
                 proceso_subido->cola_asignada = HIGH;
+                proceso_subido->quantum_actual = 0;
                 insertar_cola(colaH, proceso_subido);
                 proceso_subido->cambios_cola++;
                 proceso_subido = extraer_cola(colaM); // Subo los de colaM
@@ -314,14 +335,16 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             while(proceso_subido != NULL){
                 printf("    [+ Proceso: %s, PID: %d ha pasado a: MEDIUM]\n", proceso_subido->nombre, proceso_subido->pid);
                 proceso_subido->cola_asignada = MEDIUM;
+                proceso_subido->quantum_actual = 0;
                 proceso_subido->cambios_cola++;
                 insertar_cola(colaM, proceso_subido);
                 proceso_subido = extraer_cola(colaL); // Subo los de colaL
             }
             // TODO: Eliminar
+            /* printf("[>> Colas]:\n");
             printCola(colaH);
             printCola(colaM);
-            printCola(colaL);
+            printCola(colaL); */
             //break;
         }
         //==============================
@@ -348,6 +371,7 @@ void logica_programa(struct queue* colaH, struct queue* colaM, struct queue* col
             else{
                 // ME da un resultado válido
                 printf("    [-> Proceso: %s, PID: %d ha pasado a: RUNNING]\n", proceso_ejecutandose->nombre, proceso_ejecutandose->pid);
+                printf("    [- Cola del proceso: %s]\n", proceso_ejecutandose->cola_asignada == HIGH ? "HIGH" : (proceso_ejecutandose->cola_asignada == MEDIUM ? "MEDIUM" : "LOW"));
                 cpu_ocupada = true;
                 proceso_ejecutandose->entrado = true;
                 if(proceso_ejecutandose->cola_asignada == HIGH){

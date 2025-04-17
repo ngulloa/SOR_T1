@@ -13,7 +13,7 @@ void insertar_cola(Queue* cola, Proceso* nuevo){
         Proceso* actual = cola->primero;
         Proceso* previo = NULL;
         while(actual != NULL && actual->prioridad <= nuevo->prioridad){
-            if(actual->pid < nuevo->pid){
+            if(actual->prioridad == nuevo->prioridad && actual->pid < nuevo->pid){
                 break;
             }
             previo = actual;
@@ -38,12 +38,15 @@ void insertar_colas(Proceso* nuevo, Queue* colaH, Queue* colaM, Queue* colaL){
     nuevo->estado = READY;
     int priori = nuevo->prioridad;
     if(1<=priori && priori<=10){
+        nuevo->cola_asignada = HIGH;
         insertar_cola(colaH, nuevo);
     }
     else if(11<=priori && priori<=20){
+        nuevo->cola_asignada = MEDIUM;
         insertar_cola(colaM, nuevo);
     }
     else if(21<=priori && priori<=30){
+        nuevo->cola_asignada = LOW;
         insertar_cola(colaL, nuevo);
     }
 }
@@ -76,7 +79,7 @@ Proceso* extraer_cola(Queue* cola){
 }
 
 Proceso* insertar_almacenamiento(Proceso* almacenamiento, Proceso* nuevo){
-    printf("ALMAC [%p]\n", almacenamiento);
+    //printf("ALMAC [%p]\n", almacenamiento);
     if(almacenamiento == NULL){
         //printf("Creando el head de almacenamiento\n");
         almacenamiento = nuevo;
@@ -131,13 +134,13 @@ void printCola(struct queue* cola){
     Proceso* actual = cola->primero;
     if(actual != NULL){
         if(cola->tipo == HIGH){
-            printf("[Cola Alta Prioridad]:\n");
+            printf("    [Cola Alta Prioridad]:\n");
         }
         else if(cola->tipo == MEDIUM){
-            printf("[Cola Media Prioridad]:\n");
+            printf("    [Cola Media Prioridad]:\n");
         }
         else if(cola->tipo == LOW){
-            printf("[Cola Baja Prioridad]:\n");
+            printf("    [Cola Baja Prioridad]:\n");
         }
         
         while(actual != NULL){
@@ -154,8 +157,8 @@ void printCola(struct queue* cola){
             else if(actual->estado == FINISHED){
                 estado_proceso = "FINISHED";
             }
-            printf("    - Proceso: %s, PID: %d, Estado: %s\n", actual->nombre, actual->pid, estado_proceso);
-            printf("    - Actual: [%p], siquiente [%p]\n", actual, actual->siguiente);
+            printf("        - Proceso: %s, PID: %d, Estado: %s\n", actual->nombre, actual->pid, estado_proceso);
+            //printf("    - Actual: [%p], siquiente [%p]\n", actual, actual->siguiente);
             //printf("    - Proceso: %s, PID: %d, Estado: %d\n", actual->nombre, actual->pid, actual->estado);
             actual = actual->siguiente;
         }
