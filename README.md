@@ -5,7 +5,7 @@ Tarea 1 - Sistemas Operativos y Redes
 - Cristóbal Albornoz
 - Nicolás Ulloa (Retirado del ramo)
 
-En este documento se detalla las características de la implementación del DCCScheduler
+En este documento se detalla las características de la implementación del DCCScheduler, el cual se encuentra implementado a su totalidad Martes 16-04-2025 21:07
 
 ## Archivos
 - /
@@ -79,4 +79,5 @@ Dentro del loop ocurren las siguientes fases:
     - Si la cola es LOW solo revisa que cumpla sus burst
     - Ambas consideran la opción de que el proceso termine
 - Verifico si hay proceso que extraer del almacenamiento según el tick actual v/s el t_inicio y extraigo e insert en cola si corresponde
+- Verifico se se cumple lo de los n_ticks para poder subir procesos de cola de ser necesario
 - En caso de cpu desocupada extraigo según la lógica de las colas el primer proceso READY que encuentre y lo dejo en la CPU para poder ejecutarlo el próximo tick
